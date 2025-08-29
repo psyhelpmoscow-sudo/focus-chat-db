@@ -3,33 +3,62 @@
     prompt: document.getElementById('prompt'),
     send: document.getElementById('send'),
     status: document.getElementById('status'),
-    out: document.getElementById('out'),
+    historyBtn: document.getElementById('history'),
+    pane: document.getElementById('historyPane'),
   };
-  const DEFAULT_PROVIDER = 'openai';
+
+  function addMsg(role, text) {
+    const el = document.createElement('div');
+    el.className = 'msg ' + (role === 'assistant' ? 'assistant' : 'user');
+    el.textContent = text || '';
+    ui.pane.appendChild(el);
+    ui.pane.scrollTop = ui.pane.scrollHeight;
+  }
 
   async function sendMsg() {
     const prompt = (ui.prompt.value || '').trim();
     if (!prompt) return;
 
-    ui.out.textContent = '';
     ui.status.textContent = 'Думаю…';
     ui.send.disabled = true;
+
+    addMsg('user', prompt);
 
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, provider: DEFAULT_PROVIDER })
+        body: JSON.stringify({ prompt })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
-      ui.out.textContent = data.reply || '';
+
+      addMsg('assistant', data.reply || '');
       ui.status.textContent = '';
     } catch (e) {
       ui.status.textContent = 'Ошибка: ' + e.message;
     } finally {
       ui.send.disabled = false;
       ui.prompt.value = '';
+      ui.prompt.focus();
+    }
+  }
+
+  async function loadHistory() {
+    ui.status.textContent = 'Загружаю историю…';
+    try {
+      const res = await fetch('/api/history/current');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+
+      ui.pane.textContent = '';
+      for (const m of data) {
+        if (m.role === 'system') continue;
+        addMsg(m.role, m.content);
+      }
+      ui.status.textContent = '';
+    } catch (e) {
+      ui.status.textContent = 'Ошибка: ' + e.message;
     }
   }
 
@@ -40,4 +69,6 @@
       sendMsg();
     }
   });
+
+  ui.historyBtn.addEventListener('click', loadHistory);
 })();

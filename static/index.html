@@ -2,39 +2,25 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Чат с вашим партнером по фокусированию</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="theme-mint">
-  <header class="app-header">
-    <h1>Чат с вашим партнером по фокусированию</h1>
-    <div class="controls is-hidden">
-      <label>Провайдер:
-        <select id="provider">
-          <option value="openai" selected>OpenAI</option>
-          <option value="yandex">Yandex GPT</option>
-        </select>
-      </label>
-      <label>Модель:
-        <input id="model" type="text" value="gpt-5" />
-      </label>
-      <a class="prompt-link" href="/system-prompt.txt" target="_blank">Системный промпт</a>
-    </div>
-  </header>
+<body>
   <main class="container">
     <div class="chat">
+      <!-- Лента сообщений -->
+      <div id="historyPane" class="history-pane" aria-live="polite"></div>
+
+      <!-- Поле ввода и кнопки -->
       <textarea id="prompt" placeholder="Напишите что-нибудь..."></textarea>
       <div class="row">
         <button id="send">Отправить</button>
+        <button id="history">Показать историю</button>
         <span id="status" class="status"></span>
       </div>
-      <div id="out" class="out" aria-live="polite"></div>
     </div>
   </main>
-  <footer class="app-footer is-hidden">
-    <small>Локальный чат через безопасный прокси · Ключи остаются на сервере</small>
-  </footer>
-  <script src="script.js"></script>
+  <script src="script.js?v=3"></script>
 </body>
 </html>

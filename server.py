@@ -58,6 +58,31 @@ def api_chat():
 def api_clear():
     session.pop("conversation_id", None)
     return jsonify({"cleared": True})
+@app.get("/api/history/current")
+def api_history_current():
+    conv_id = session.get("conversation_id")
+    if not conv_id:
+        return jsonify({"error": "Нет активной сессии"}), 404
+    return _dump_history(conv_id)
+
+@app.get("/api/history/<int:conv_id>")
+def api_history(conv_id):
+    return _dump_history(conv_id)
+
+def _dump_history(conv_id: int):
+    from app.models import Message
+    db = SessionLocal()
+    try:
+        msgs = (db.query(Message)
+                  .filter(Message.conversation_id == conv_id)
+                  .order_by(Message.id)
+                  .all())
+        return jsonify([
+            {"role": m.role, "content": m.content, "created_at": m.created_at.isoformat()}
+            for m in msgs
+        ])
+    finally:
+        db.close()
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
